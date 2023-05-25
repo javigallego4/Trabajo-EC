@@ -1,0 +1,331 @@
+---
+title: "Creación de animaciones. Paquete *animation*"
+author: 
+- "Francisco Javier Gallego Menor, Carlos Galán Carracedo, Giorgia Tossici"
+date: "`r format(Sys.time(), '%d de %B de %Y')`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introducción
+
+Una vez vista la gran variedad de gráficos que ofrece R para la realización de análisis exploratorios de los datos, análisis visual de los resultados de un algoritmo, etc. nos ha resultado interesante explorar las posibilidades que ofrece el lenguaje para la creación de animaciones. 
+
+Es por esto, que hemos decidido realizar nuestro trabajo sobre el paquete `animation`. Este paquete proporciona funciones para hacer animaciones para diversos campos de la estadística: teoría de probabilidad, estadística matemática, estadística multivariante, series de temporales, etc. Así mismo, incluye una serie de funciones para guardar las animaciones en varios formatos: GIF, HTML, PDF, etc.
+
+A lo largo del documento iremos planteando una serie de problemas ilustrativos y describiremos cómo el paquete `animation` nos permite resolverlos. Cabe comentar que el uso de estas animaciones tienen una gran finalidad didáctica, ya que ayudan a conseguir un mejor entendimiento del funcionamiento de muchos de los algoritmos y/o problemas que se muestran a continuación.
+
+En primer lugar, mostramos como ha de realizarse la instalación del paquete: 
+
+```{r eval = FALSE}
+install.packages("animation")
+```
+
+Una vez instalado, lo único que hará falta será cargar el paquete: 
+
+```{r}
+library(animation)
+```
+
+# Ejemplos ilustrativos
+
+## Aprendizaje no supervisado. Algoritmo K-Means
+
+El algoritmo **K-Means** funciona de forma iterativa para asignar cada instancia de un conjunto de datos a uno de los *K* grupos en función de sus características. 
+
+El algoritmo consta de tres pasos:
+
+* **Inicialización**: una vez escogido el número de grupos, k, se establecen k centroides en el espacio de los datos, por ejemplo, escogiéndolos aleatoriamente.
+* **Asignación objetos a los centroides**: cada objeto de los datos es asignado a su centroide más cercano.
+* **Actualización de centroides**: se actualiza la posición del centroide de cada grupo tomando como nuevo centroide la posición del promedio de los objetos pertenecientes a dicho grupo.
+
+Se repiten los pasos 2 y 3 hasta que los centroides no se mueven, o se mueven por debajo de una distancia umbral en cada paso. 
+
+Entonces, nuestro foco de atención radica en examinar visualmente en qué consiste la ejecución de este algoritmo. Es aquí cuando *animation* nos va a servir de ayuda, pues dispone del método `kmeans.ani`.
+
+Para el ejemplo, vamos a utilizar un conjunto de datos de la plataforma [Kaggle](https://www.kaggle.com). Este incluye datos sobre el alquiler de *airbnbs* en la ciudad *de New York*. Para una ejecución apropiada del algoritmo de *K-Means* deben cumplirse varios supuestos. Sin embargo, puesto que nuestro fin no es obtener clusters con una asignación óptima, sino mostrar cómo es la ejecución del algoritmo vamos a proceder directamente a su aplicación.
+
+**Es importante mencionar que *animations* únicamente soporta dos dimensiones. Es por esto, que seleccionaremos exclusivamente dos características de las instancias. **
+
+```{r}
+# Cargamos el conjunto de datos 
+data<-read.csv('data/airbnb.csv', row.names=NULL)
+data <- data[1:10000, c("longitude", "latitude")]
+````
+
+A continuación, con el comando `ani.options(interval = 1)` podemos establecer cuál será la velocidad de la animación.
+
+```{r}
+ani.options(interval = 1)
+```
+
+Por último, almacenaremos el resultado de la ejecución del algoritmo en un archivo de tipo *HTML*. Para ello, el paquete nos proporciona el método `saveHTML`:
+
+```{r}
+# Coloco la ejecucion del algoritmo en una funcion para tener un codigo limpio
+# (no poner esto en `saveHTML`) y para que no se muestre en el documento html
+# principal, sin animar
+generate_result <- function() {
+  return(kmeans.ani(
+    x = data,
+    centers <- 3,
+  ))
+}
+
+# Aplicamos el algoritmo, salvandolo en un fichero html para visualizarse
+saveHTML(
+  generate_result(),
+  htmlfile = "animaciones/KMeans/kMeans.html",
+  img.name = "k_means",
+  imgdir = "animaciones/KMeans/images"
+)
+```
+
+## Aprendizaje supervisado. Algoritmo K-Nearest Neighbours (KNN)
+
+El algoritmo de *K-Nearest Neighbours* es un clasificador de aprendizaje supervisado no paramétrico, que utiliza la proximidad para hacer clasificaciones o predicciones sobre la agrupación de un punto de datos individual.
+
+Los pasos de este algoritmo, una vez cargados los datos de nuestro *dataset*, son los siguientes: 
+
+Para cada punto: 
+
+  * Calcular la distancia de todos los elementos con nuestro punto
+  * Ordenar las distancias de menor a mayor
+  * Seleccionar los K elementos más cercanos
+  * Obtener la predicción del algoritmo, por voto mayoritario generalmente. 
+  
+Para examinar visualmente cómo es la ejecución de dicho algoritmo podemos usar la función `knn.ani`, proporcionado nuevamente por el paquete *animation*. El conjunto de datos que usaremos esta vez será el de [Titanic](https://www.kaggle.com/competitions/titanic/data?select=test.csv). Este conjunto presenta dos etiquetas posibles: 0 o 1. De forma análoga al apartado anterior, escogeremos únicamente dos dimensiones. 
+
+Empezamos cargando los datos de entrenamiento y de test. Con el fin de un mejor análisis visual del algoritmo, se han reducido las instancias de los conjuntos mediante una filtración:  
+
+```{r}
+# Datos de entrenamiento
+train_data<-read.csv('data/titanic_train.csv', row.names=NULL)
+train_data <- train_data[is.na(train_data$Age) == FALSE,]
+X_train<-train_data[(train_data$Fare>=30) & (train_data$Fare < 250),  c("Age", "Fare")]
+y_train<-train_data[(train_data$Fare>=30) & (train_data$Fare < 250), 'Survived']
+
+# Datos de test
+test_data<-read.csv('data/titanic_test.csv', row.names=NULL)
+test_data <- test_data[(is.na(test_data$Fare) == FALSE) & (is.na(test_data$Age) == FALSE),]
+X_test<-test_data[(test_data$Fare>=30) & (test_data$Fare < 250),  c("Age", "Fare")]
+```
+
+Fijaremos como 5 al número de vecinos cercanos: 
+
+```{r}
+# Cinco vecinos más cercanos
+k <- 5
+```
+
+Por último, obtenemos la animación en formato *HTML* con el siguiente código: 
+
+```{r}
+# Establecemos la velocidad de la animacion
+ani.options(interval = 1)
+
+# Coloco la ejecucion del algoritmo en una funcion para tener un codigo limpio
+# (no poner esto en saveHTML) y para que no se muestre en el documento html
+# principal, sin animar
+generate_result <- function() {
+  return(knn.ani(
+    train = X_train,
+    test = X_test,
+    k = k,
+    cl = y_train
+  ))
+}
+
+# Aplicamos el algoritmo, salvandolo en un fichero html para visualizarse
+saveHTML(
+  generate_result(),
+  htmlfile = "animaciones/KNN/kNN.html",
+  img.name = "knn",
+  imgdir = "animaciones/KNN/images"
+)
+```
+
+## Descenso del gradiente
+
+El descenso del gradiente es un algoritmo de optimización iterativo y constituye un pilar fundamental en el funcionamiento de las llamadas redes neuronales. Intuitivamente, el gradiente en un punto dado indica la dirección de máximo crecimiento. Así mismo, la dirección opuesta indicará la de máximo decrecimiento. Por tanto, este algoritmo es muy usado en problemas en los que haya que maximizar o minimizar el valor de una función. 
+
+Una de las propiedades que posee este algoritmo es que únicamente garantiza la convergencia hacia un mínimo absoluto cuando la función es convexa. Además, es muy sensible al punto inicial (que se suele escoger de forma aleatoria). 
+
+Nuestro objetivo en este apartado será demostrar todo esto gracias a las animaciones que nos proporciona el paquete escogido. En primer lugar, vamos a comprobar que la convexidad de la función implica convergencia al mínimo absoluto. Para ello, vamos a usar la siguiente función: 
+
+```{r}
+# Función convexa
+fdejong = function(x, y) x^2 + y^2
+x <- seq(-10, 10, length= 30)
+y <- x
+z <- outer(x, y, fdejong)
+z[is.na(z)] <- 1
+op <- par(bg = "white")
+persp(x, y, z, theta = 90, phi = 30, expand = 0.5, col = "red")
+```
+
+Ahora, gracias al método `grad.desc` del paquete *animation* observamos la convergencia al mínimo. El archivo asociado a esta animación es **GD_convexo.html**: 
+
+```{r}
+# Convexa
+saveHTML({grad.desc(fdejong, c(-10,-10,10,10), c(8,8))
+},htmlfile = "animaciones/Gradiente Descendente/GD_convexo.html", img.name = "gd_convexa", imgdir = "animaciones/Gradiente Descendente/images")
+```
+
+Lo siguiente que vamos a hacer es estudiar la influencia de la inicialización en la convergencia del algoritmo. Para ello, vamos a usar una función con dos mínimos: 
+
+```{r}
+f1 = function(x, y) x^2 + 3 * sin(y)
+x <- seq(pi*-2,pi*2,length.out=100)
+y <- seq(pi*-2,pi*2,length.out=100)
+z <- outer(x^2,3* sin(y),`+`)
+
+# Set up plot area with specified dimensions
+persp(x, y, z, theta = 180, phi = 30, expand = 0.5, col = "green")
+persp(x, y, z, theta = 90, phi = 30, expand = 0.5, col = "green")
+```
+
+A continuación, construimos dos animaciones. Cada una de ellas con un punto inicial distinto, que ha sido escogido a medida. En los archivos **GD_dos_minimos_1.html** y **GD_dos_minimos_2.html** podemos observar que la convergencia no es la misma: 
+
+```{r}
+# Convergencia a un mínimo
+saveHTML({grad.desc(f1, pi * c(-2, -2, 2, 2), c(-2 * pi, 2))
+},htmlfile = "animaciones/Gradiente Descendente/GD_dos_minimos_1.html", img.name = "gd_dos_minimos1", imgdir = "animaciones/Gradiente Descendente/images")
+
+# Cambiamos el punto inicial y la convergencia ahora es a otro mínimo, distinto al anterior
+saveHTML({grad.desc(f1, pi * c(-2, -2, 2, 2), c(-2 * pi, -2))
+},htmlfile = "animaciones/Gradiente Descendente/GD_dos_minimos_2.html", img.name = "gd_dos_minimos2", imgdir = "animaciones/Gradiente Descendente/images")
+
+```
+
+## Método de Bisección
+
+El método de bisección es una técnica numérica utilizada para encontrar aproximaciones de soluciones de ecuaciones no lineales. Es un método sencillo y robusto que se basa en el principio del valor intermedio.
+
+En esencia, el método de bisección divide repetidamente el intervalo que contiene la solución buscada a la mitad y determina en qué subintervalo se encuentra la raíz de la ecuación. A través de sucesivas iteraciones, la aproximación de la solución se mejora gradualmente hasta alcanzar la precisión deseada.
+
+Resumen del método de bisección:
+
+1. Seleccionar un intervalo inicial [a, b] que contenga a la solución buscada.
+2. Calcular el punto medio c del intervalo [a, b].
+3. Evaluar la función en el punto medio c y determinar si es igual a cero o si su signo es diferente en comparación con los extremos a y b.
+4. Si la función evaluada en c es igual a cero, entonces c es la solución buscada.
+5. Si la función tiene el mismo signo en c y a, se actualiza el intervalo [a, b] reemplazando a por c.
+6. Si la función tiene el mismo signo en c y b, se actualiza el intervalo [a, b] reemplazando b por c.
+7. Repetir los pasos 2 a 6 hasta alcanzar la precisión deseada o hasta que se haya alcanzado el número máximo de iteraciones.
+
+El método de bisección es convergente, lo que significa que garantiza que la aproximación de la solución se acerca cada vez más al valor verdadero. Sin embargo, su convergencia es relativamente lenta en comparación con otros métodos más avanzados.
+
+Vamos a probar un ejemplo con una función sencilla: $f(x)=x^3 - 7x -10$ y definiremos el intervalo $[-3,5]$ ya que cumple las condiciones del algoritmo y hay una raíz.
+
+```{r}
+f = function(x) x^3 - 7 * x - 10
+curve(f, from = -3, to=5)
+abline(h=0)
+```
+
+Por último, usaremos la función `animation` correspondiente. En este caso `bisection.method` y que como parámetros tendrá la función $f$ que hemos definido y los valores iniciales del intervalo $a,b$ del método de bisección:
+  
+  ```{r, dev='png'}
+saveHTML({bisection.method(f, c(-3, 5))
+},htmlfile = "animaciones/Biseccion/Biseccion.html", img.name = "biseccion", imgdir = "animaciones/Biseccion/images/")
+```
+
+La animación queda guardada en el fichero [Biseccion.html](Biseccion.html).
+
+## Integración de Montecarlo
+
+Dentro del paquete `animation` que estamos estudiando, contamos con una función que realiza la animación del método de integración de Montecarlo.
+
+El Método de Integración de Montecarlo usa números aleatorios para hallar el valor de integrales del tipo:
+  
+  $$ I = \int \limits_0^1 h(x) dx$$
+  Considerando que la densidad de probabilidad de una distribución uniforme en el intervalo $(0,1)$ es $f(x)=1$, podemos expresar la integral previa de la siguiente manera:
+  
+  $$ I = \int \limits_0^1 h(x) dx = \Bbb{E}[h(X)]$$
+  
+  Tenemos que $X \sim \mathcal{U}$. Puesto que lo estamos describiendo como una media teórica, podemos aproximarla simulando $n$ variables aleatorias uniformes $X_1,\dots,X_n$:
+  
+  $$ I = \int \limits_0^1 h(x) dx = \Bbb{E}[h(X)] \approx \frac{1}{n}  \sum_{i=1}^{n}h(X_i)$$
+  
+  La función `MC.samplemean` muestra los rectángulos con una anchura de $\frac1n$ y una altura de $h(x_i)$. De esta forma, podemos visualizar de manera gráfica la diferencia entre el valor exacto de la integral y su aproximación mediante el método de Montecarlo.
+
+Los parámetros de entrada de la función son:
+  - La función que se desea integrar
+  - El número de puntos seleccionados de manera uniforme
+  - El color asignado a los rectángulos
+  - Una opción para ajustar las posiciones de los rectángulos en el eje x
+
+Como resultado, la función retorna una lista que contiene los números aleatorios generados, la evaluación de la función en esos puntos, el valor de la variable n utilizada y la estimación obtenida para la integral.
+
+Mostraremos un ejemplo con la función $h(x) =4x^4$.
+
+Veamos en primer lugar un gráfico de la función:
+  
+  ```{r, fig.align='center',fig.cap='Función a integrar'}
+# definimos la función a integrar
+h<-function(x) (4*x^4) * (x>0 & x<1)
+# visualizamos la función en el dominio de integración16
+curve(h,0,1)
+```
+
+En segundo lugar, crearemos y guardaremos la animación:
+  
+  ```{r,dev='png', include = FALSE}
+set.seed(1)
+generate_result <- function() {
+  return(
+    MC.samplemean(FUN = h,adj.x = FALSE, col.rect = c(rgb(0, 0, 0, 0.3), rgb(1, 0, 0)), border = NA, n=60)
+  )
+}
+saveHTML(generate_result(), htmlfile = "animaciones/MonteCarlo/MonteCarlo.html", img.name = "montecarlo", imgdir = "animaciones/MonteCarlo/images/")
+```
+
+Almacenaremos el resultado de la computación y mostraremos ciertos valores numéricos:
+  
+  ```{r fig.show='hide'}
+montecarlo <- generate_result()
+```
+
+```{r}
+# Mostramos la estimación de la integral
+montecarlo$est
+```
+
+Teniendo en cuenta que el valor de la integral es $\frac{4}{5}$ , veamos que el error relativo de la aproximación es de:
+  
+  ```{r}
+abs(montecarlo$est-4/5)/(4/5)
+```
+
+La animación se encuentra en el fichero [MonteCarlo.html](MonteCarlo.html).
+
+## Moving block
+
+Dentro de la biblioteca `animation`, se encuentra una utilidad llamada `moving.block` que posibilita la exhibición de conjuntos de datos en forma de subconjuntos. Esta función permite visualizar porciones específicas de los datos para lograr una perspectiva más detallada. En lugar de mostrar todos los datos de una sola vez, se van presentando pequeños subconjuntos en sucesión, permitiendo observar partes contiguas en un gráfico separado. De este modo, se simula un recorrido panorámico a través del gráfico que representa el conjunto completo de datos.
+
+Pasaremos como parámetros:
+  - Los datos como un vector numérico o una matriz de dos columnas.
+  - El tamaño de cada bloque, es decir, el número de elementos que serán representados en cada paso.
+  - La función que sirve para representar los datos (ej: scatterplot, plot, curve, una función personalizada...).
+
+Mostraremos un ejemplo mediante el `ObamaSpeech` que se encuentra dentro del paquete animation. Cada dato de este vector simboliza el número de palabras en cada parráfo del discurso de Obama tras ganar las elecciones presidenciales.
+
+```{r,dev='png'}
+saveHTML({moving.block(dat = ObamaSpeech, FUN = function(...,dat = dat, i = i, block = block) {plot(...,x = i + 1:block, xlab = "índice del párrafo", ylim = range(dat), ylab = sprintf("ObamaSpeech[%s:%s]", i + 1, i + block))}, type = "o", pch = 20)},htmlfile = "animaciones/Obama/Obama.html", img.name = "Obama", imgdir = "animaciones/Obama/images/")
+```
+
+La animación queda en el fichero [Obama.html](./Obama.html).
+
+
+

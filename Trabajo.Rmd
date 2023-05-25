@@ -85,11 +85,13 @@ generate_result <- function() {
 # Aplicamos el algoritmo, salvandolo en un fichero html para visualizarse
 saveHTML(
   generate_result(),
-  htmlfile = "animaciones/KMeans/kMeans.html",
+  htmlfile = "kMeans.html",
   img.name = "k_means",
-  imgdir = "animaciones/KMeans/images"
+  imgdir = "animaciones/KMeans/images/"
 )
 ```
+
+La animación queda en el fichero **[KMeans.html](./kMeans.html)**
 
 ## Aprendizaje supervisado. Algoritmo K-Nearest Neighbours (KNN)
 
@@ -149,9 +151,9 @@ generate_result <- function() {
 # Aplicamos el algoritmo, salvandolo en un fichero html para visualizarse
 saveHTML(
   generate_result(),
-  htmlfile = "animaciones/KNN/kNN.html",
+  htmlfile = "kNN.html",
   img.name = "knn",
-  imgdir = "animaciones/KNN/images"
+  imgdir = "animaciones/KNN/images/"
 )
 ```
 
@@ -174,12 +176,12 @@ op <- par(bg = "white")
 persp(x, y, z, theta = 90, phi = 30, expand = 0.5, col = "red")
 ```
 
-Ahora, gracias al método `grad.desc` del paquete *animation* observamos la convergencia al mínimo. El archivo asociado a esta animación es **GD_convexo.html**: 
+Ahora, gracias al método `grad.desc` del paquete *animation* observamos la convergencia al mínimo. El archivo asociado a esta animación es **[GD_convexo.html](./GD_convexo.html)**: 
 
 ```{r}
 # Convexa
 saveHTML({grad.desc(fdejong, c(-10,-10,10,10), c(8,8))
-},htmlfile = "animaciones/Gradiente Descendente/GD_convexo.html", img.name = "gd_convexa", imgdir = "animaciones/Gradiente Descendente/images")
+},htmlfile = "GD_convexo.html", img.name = "gd_convexa", imgdir = "animaciones/Gradiente Descendente/images/")
 ```
 
 Lo siguiente que vamos a hacer es estudiar la influencia de la inicialización en la convergencia del algoritmo. Para ello, vamos a usar una función con dos mínimos: 
@@ -195,18 +197,20 @@ persp(x, y, z, theta = 180, phi = 30, expand = 0.5, col = "green")
 persp(x, y, z, theta = 90, phi = 30, expand = 0.5, col = "green")
 ```
 
-A continuación, construimos dos animaciones. Cada una de ellas con un punto inicial distinto, que ha sido escogido a medida. En los archivos **GD_dos_minimos_1.html** y **GD_dos_minimos_2.html** podemos observar que la convergencia no es la misma: 
+A continuación, construimos dos animaciones. Cada una de ellas con un punto inicial distinto, que ha sido escogido a medida.
 
 ```{r}
 # Convergencia a un mínimo
 saveHTML({grad.desc(f1, pi * c(-2, -2, 2, 2), c(-2 * pi, 2))
-},htmlfile = "animaciones/Gradiente Descendente/GD_dos_minimos_1.html", img.name = "gd_dos_minimos1", imgdir = "animaciones/Gradiente Descendente/images")
+},htmlfile = "GD_dos_minimos_1.html", img.name = "gd_dos_minimos1", imgdir = "animaciones/Gradiente Descendente/images/")
 
 # Cambiamos el punto inicial y la convergencia ahora es a otro mínimo, distinto al anterior
 saveHTML({grad.desc(f1, pi * c(-2, -2, 2, 2), c(-2 * pi, -2))
-},htmlfile = "animaciones/Gradiente Descendente/GD_dos_minimos_2.html", img.name = "gd_dos_minimos2", imgdir = "animaciones/Gradiente Descendente/images")
+},htmlfile = "GD_dos_minimos_2.html", img.name = "gd_dos_minimos2", imgdir = "animaciones/Gradiente Descendente/images/")
 
 ```
+
+En los archivos [GD_dos_minimos_1.html](./GD_dos_minimos_1.html) y  [GD_dos_minimos_2.html](./GD_dos_minimos_2.html) podemos observar que la convergencia no es la misma. 
 
 ## Método de Bisección
 
@@ -238,7 +242,7 @@ Por último, usaremos la función `animation` correspondiente. En este caso `bis
   
   ```{r, dev='png'}
 saveHTML({bisection.method(f, c(-3, 5))
-},htmlfile = "animaciones/Biseccion/Biseccion.html", img.name = "biseccion", imgdir = "animaciones/Biseccion/images/")
+},htmlfile = "Biseccion.html", img.name = "biseccion", imgdir = "animaciones/Biseccion/images/")
 ```
 
 La animación queda guardada en el fichero [Biseccion.html](Biseccion.html).
@@ -288,7 +292,7 @@ generate_result <- function() {
     MC.samplemean(FUN = h,adj.x = FALSE, col.rect = c(rgb(0, 0, 0, 0.3), rgb(1, 0, 0)), border = NA, n=60)
   )
 }
-saveHTML(generate_result(), htmlfile = "animaciones/MonteCarlo/MonteCarlo.html", img.name = "montecarlo", imgdir = "animaciones/MonteCarlo/images/")
+saveHTML(generate_result(), htmlfile = "MonteCarlo.html", img.name = "montecarlo", imgdir = "animaciones/MonteCarlo/images/")
 ```
 
 Almacenaremos el resultado de la computación y mostraremos ciertos valores numéricos:
@@ -322,7 +326,7 @@ Pasaremos como parámetros:
 Mostraremos un ejemplo mediante el `ObamaSpeech` que se encuentra dentro del paquete animation. Cada dato de este vector simboliza el número de palabras en cada parráfo del discurso de Obama tras ganar las elecciones presidenciales.
 
 ```{r,dev='png'}
-saveHTML({moving.block(dat = ObamaSpeech, FUN = function(...,dat = dat, i = i, block = block) {plot(...,x = i + 1:block, xlab = "índice del párrafo", ylim = range(dat), ylab = sprintf("ObamaSpeech[%s:%s]", i + 1, i + block))}, type = "o", pch = 20)},htmlfile = "animaciones/Obama/Obama.html", img.name = "Obama", imgdir = "animaciones/Obama/images/")
+saveHTML({moving.block(dat = ObamaSpeech, FUN = function(...,dat = dat, i = i, block = block) {plot(...,x = i + 1:block, xlab = "índice del párrafo", ylim = range(dat), ylab = sprintf("ObamaSpeech[%s:%s]", i + 1, i + block))}, type = "o", pch = 20)},htmlfile = "Obama.html", img.name = "Obama", imgdir = "animaciones/Obama/images/")
 ```
 
 La animación queda en el fichero [Obama.html](./Obama.html).
